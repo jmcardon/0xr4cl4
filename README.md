@@ -11,8 +11,9 @@ but why on earth would you have different spaces between words when you can lite
 
 ## Required:
 
-GHC 8.0+
-Cabal 2.2+
+* GHC 8.0+
+* Cabal 2.2+
+* Mac or Linux, since it has a dependency on `System.FilePath.Posix` and I dislike windows anyway.
 
 ### Usage
 `chmod +x difftool` so you can run it.
