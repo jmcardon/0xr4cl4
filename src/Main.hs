@@ -17,6 +17,7 @@ import           System.FilePath.Posix          ( (</>) )
 import qualified System.FilePath.Posix         as FP
 import           Control.Lens                   ( makeLenses
                                                 , (^.)
+                                                , over
                                                 )
 import           Control.Monad                  ( filterM )
 import           System.Exit                    ( ExitCode(..) )
@@ -89,7 +90,11 @@ data ProgramOut = NoDiff | Diff FileDiffs | Error ProcessException deriving (Eq,
 main :: IO ()
 main = do
   env <- execParser cmdOptsEnv
-  eiffelFile env
+  eiffelFile (fixOracle env)
+ where
+  fixOracle e = if e ^. envOraclePath == FP.takeFileName (e ^. envOraclePath)
+    then over envOraclePath ((</>) ".") e
+    else e
 
 cmdOptsEnv :: ParserInfo Env
 cmdOptsEnv = info
