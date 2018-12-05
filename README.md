@@ -9,20 +9,28 @@ a temporary location and reading off disk.
 The diff tool is tolerant of leading and trailing whitespace, but not of inter-word whitespace. I could change this,
 but why on earth would you have different spaces between words when you can literally copy the error message from the lab spec!!!
 
+## Required:
+
+GHC 8.0+
+Cabal 2.2+
+
 ### Usage
+`chmod +x difftool` so you can run it.
+
 Run by setting:
 * `--eiffel-path` to the path of your eiffel executable (the file itself. Typically the location inside EIFGENs).
 *`--oracle-path` to the path of the oracle provided by the professor (just `oracle` is fine, since I am also including it here)
 * `--at-file-dir` to the path of where your `atX.txt` files are.
 
-example usage:
+Note: It's easier to just make a new bash script that references `./difftool` to not have to set the arguments every time. See `runOracle` for an example.
 
-See `runOracle` for an example.
+If you are on mac or a unix system with cabal on it, and want to run it without the alias, `cabal -v0 new-run -- <args>` is how to do it
+(see `difftool` file)
 
-example output that is successful:
+Example output that is successful:
 
 ![All Ok](allOk.png)
 
-example output with errors:
+Example output with errors:
 
 ![Not Ok](errors.png)
