@@ -176,7 +176,8 @@ eiffelFile env = do
       $     lineDiffs fp
       $     mkTextLines ((T.lines . T.pack) outOracle)
       `zip` mkTextLines ((T.lines . T.pack) outEiffel)
-  mkTextLines li = uncurry TextLine <$> ([1 ..] `zip` li)
+  mkTextLines li =
+    let stripped = T.strip <$> li in uncurry TextLine <$> ([1 ..] `zip` stripped)
   handleExit (ExitFailure i) err file f = throwIO $ f i file err
   handleExit _               _   _    _ = pure ()
   handleOut (Diff  p) = diffs p
