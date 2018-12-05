@@ -18,6 +18,19 @@ but why on earth would you have different spaces between words when you can lite
 ### Usage
 `chmod +x difftool` so you can run it.
 
+Start by running `cabal new-build` to see the build status. Alternatively, don't bother since running `./difftool` will compile it anyway, but you can see the compilation output this way.
+If you can be patient and not despair, subsequent runs after the first compile will be blazing fast. The first run will be slow at first, as it compiles.
+
+After it is compiled, it should run fast. Example:
+
+```
+jm0x5c@jm0x5c:~/Documents/3311/project/3311Project/0xr4cl4$ time ./runOracle 1> /dev/null 
+
+real    0m0.314s
+user    0m1.130s
+sys     0m0.298s
+```
+
 Run by setting:
 * `--eiffel-path` to the path of your eiffel executable (the file itself. Typically the location inside EIFGENs).
 *`--oracle-path` to the path of the oracle provided by the professor (just `oracle` is fine, since I am also including it here)
