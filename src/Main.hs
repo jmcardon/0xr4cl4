@@ -19,10 +19,10 @@ import           Control.Lens                   ( makeLenses
                                                 , (^.)
                                                 )
 import           Control.Monad                  ( filterM )
-import           Data.Maybe                     ( catMaybes )
 import           System.Exit                    ( ExitCode(..) )
 import           Control.Exception              ( Exception
                                                 , throwIO
+                                                , catch
                                                 )
 import           Options.Applicative            ( Parser
                                                 , ParserInfo
@@ -42,8 +42,9 @@ import           Options.Applicative            ( Parser
 import           Data.Foldable                  ( traverse_ )
 import           Data.Algorithm.Diff
 import           System.Console.ANSI
+import           Control.Concurrent.Async       ( mapConcurrently )
 
-data ProcessException = OracleFailure Int String String | EiffelFailure Int String String
+data ProcessException = OracleFailure Int String String | EiffelFailure Int String String deriving (Eq)
 
 instance Show ProcessException where
     show (OracleFailure i file errorOut) = "Oracle program failure running file "
@@ -83,6 +84,8 @@ data FileDiffs = FileDiffs {
 
 makeLenses ''FileDiffs
 
+data ProgramOut = NoDiff | Diff FileDiffs | Error ProcessException deriving (Eq, Show)
+
 main :: IO ()
 main = do
   env <- execParser cmdOptsEnv
@@ -118,10 +121,10 @@ parseEnv =
           <> action "directory"
           )
 
-lineDiffs :: FilePath -> [(TextLine, TextLine)] -> Maybe FileDiffs
+lineDiffs :: FilePath -> [(TextLine, TextLine)] -> ProgramOut
 lineDiffs f li = case filter eqTextContent li of
-  []     -> Nothing
-  x : xs -> Just $ FileDiffs f (x :| xs)
+  []     -> NoDiff
+  x : xs -> Diff $ FileDiffs f (x :| xs)
   where eqTextContent (l, r) = (l ^. textLineContent) /= (r ^. textLineContent)
 
 allFiles :: [FilePath] -> [FilePath]
@@ -143,15 +146,16 @@ eiffelFile env = do
   putStrLn "Program diffs compared for the following files:"
   traverse_ putStrLn niceFiles
   allF <- filterM Dir.doesFileExist combPath
-  li   <- catMaybes <$> traverse (runAll env) allF
+  li   <- filter (/= NoDiff) <$> mapConcurrently (runWithHandler env) allF
   case li of
     [] -> niceOutput "No differences in all files run! Good job"
-    _  -> traverse_ diffs li
+    _  -> traverse_ handleOut li
  where
   niceOutput e = do
     setSGR [SetColor Foreground Vivid Blue]
     putStrLn e
     setSGR [Reset]
+  runWithHandler env fp = catch (runAll env fp) (pure . Error)
   runAll env fp = do
     (eOracle, outOracle, errOracle) <- Proc.readProcessWithExitCode
       (env ^. envOraclePath)
@@ -170,6 +174,9 @@ eiffelFile env = do
   mkTextLines li = uncurry TextLine <$> ([1 ..] `zip` li)
   handleExit (ExitFailure i) err file f = throwIO $ f i file err
   handleExit _               _   _    _ = pure ()
+  handleOut (Diff  p) = diffs p
+  handleOut (Error e) = print e
+  handleOut _         = print ()
   diffs fd = do
     setSGR [SetColor Foreground Dull Red]
     TIO.putStrLn

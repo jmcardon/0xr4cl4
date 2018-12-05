@@ -60,7 +60,7 @@ executable hask-oracle
   -- Other library packages from which modules are imported.
   build-depends:       base ^>=4.11.1.0, text, process, bytestring,
                        optparse-applicative, directory, filepath, lens,
-                       mtl, Diff, ansi-terminal
+                       mtl, Diff, ansi-terminal, async
 
   -- Directories containing source files.
   hs-source-dirs:      src
